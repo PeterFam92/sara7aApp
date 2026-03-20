@@ -14,3 +14,12 @@ export const ProviderEnum = {
   Google: 1,
   Facebook: 2,
 };
+export const signatureEnum = {
+  Admin: 0,
+  User: 1,
+};
+
+export const TokenTypeEnum = {
+  Access: 0,
+  Refresh: 1,
+};
