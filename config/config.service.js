@@ -25,4 +25,7 @@ export const config = {
   //common
   refreshTokenExpiration: Number(process.env.REFRESH_TOKEN_EXPIRATION),
   accessTokenExpiration: Number(process.env.ACCESS_TOKEN_EXPIRATION),
+
+  //social login
+  googleClientId: process.env.GOOGLE_CLIENT_ID,
 };

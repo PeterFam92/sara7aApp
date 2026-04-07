@@ -4,7 +4,7 @@ import { signatureEnum, RoleEnum } from "../enums/user.enum.js";
 
 export const generateToken = ({
   payload,
-  secretKey = config.accessTokenSecret,
+  secretKey = config.userAccessTokenSecret,
   options = { expiresIn: config.accessTokenExpiration },
 }) => {
   return jwt.sign(payload, secretKey, options);

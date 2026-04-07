@@ -30,6 +30,7 @@ const userSchema = new mongoose.Schema(
         return this.provider === ProviderEnum.System;
       },
     },
+    age: Number,
     DOB: {
       type: Date,
     },

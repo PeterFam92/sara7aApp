@@ -5,6 +5,7 @@ import {
   notFoundException,
 } from "./Utils/response/error.response.js";
 import dbConnection from "./DB/connection.js";
+import cors from "cors";
 
 const bootstrap = async (app, express) => {
   dbConnection();
@@ -15,7 +16,7 @@ const bootstrap = async (app, express) => {
       message: "Welcome to the Sara7a API",
     });
   });
-  app.use(express.json());
+  app.use(express.json(), cors());
   app.use("/api/auth", authRouter);
   app.use("/api/user", userRouter);
   app.all("/*dummy", (req, res) => {
