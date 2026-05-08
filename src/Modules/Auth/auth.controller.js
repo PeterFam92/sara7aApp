@@ -10,12 +10,12 @@ const router = Router();
 router.post(
   "/signup",
   validation(authValidation.signupSchema),
-  authService.signUp
+  authService.signUp,
 );
 router.post(
   "/login",
   validation(authValidation.loginSchema),
-  authService.logIn
+  authService.logIn,
 );
 router.post(
   "/refresh-token",
@@ -24,5 +24,17 @@ router.post(
 );
 
 router.post("/social-login", authService.googleLogin);
+
+router.post(
+  "/logout",
+  authenticationMiddleware({ tokenType: TokenTypeEnum.Access }),
+  authService.logout,
+);
+
+router.post(
+  "/logout-with-redis",
+  authenticationMiddleware({ tokenType: TokenTypeEnum.Access }),
+  authService.logoutWithRedis,
+);
 
 export default router;

@@ -55,6 +55,9 @@ const userSchema = new mongoose.Schema(
     },
     confirmEmail: Date,
     profilePicture: String,
+    coverPictures: [String],
+    isActive: { type: Boolean, default: true },
+    changeCredentialsTime: Date,
   },
   {
     timestamps: true,

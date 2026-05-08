@@ -23,3 +23,8 @@ export const TokenTypeEnum = {
   Access: 0,
   Refresh: 1,
 };
+export const LogoutTypeEnum = {
+  LogoutFromAllDevices: "logoutAll",
+
+  LogoutFromCurrentDevice: "logoutCurrent",
+};

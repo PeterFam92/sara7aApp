@@ -5,8 +5,11 @@ import {
   notFoundException,
   unAuthorizedException,
 } from "../Utils/response/error.response.js";
-import { findById } from "../DB/database.repo.js";
+import { findById, findOne } from "../DB/database.repo.js";
 import UserModel from "../DB/Models/user.model.js";
+import { get, revokeTokenKey } from "../DB/redis.service.js";
+
+import TokenModel from "../DB/Models/token.model.js";
 
 export const resolveToken = async ({
   authorization,
@@ -27,8 +30,23 @@ export const resolveToken = async ({
         ? signature.accessSignature
         : signature.refreshSignature,
   });
+  // check if token is revoked -->logout
+
+  // if (await findOne({ model: TokenModel, filter: { jti: decodedToken.jti } }))
+  //   throw unAuthorizedException({ message: "Token is Revoked" });
+
+  const isRevoked = await get({
+    key: revokeTokenKey({
+      userId: decodedToken.id,
+      jti: decodedToken.jti,
+    }),
+  });
+  if (isRevoked) throw unAuthorizedException({ message: "Token is Revoked" });
+
   const user = await findById({ model: UserModel, id: decodedToken.id });
   if (!user) throw notFoundException({ message: "User not found" });
+  if (user.changeCredentialsTime?.getTime() >= decodedToken.iat * 1000)
+    throw unAuthorizedException({ message: "Token is Expired" });
   return { user, decodedToken };
 };
 

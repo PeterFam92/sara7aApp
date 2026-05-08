@@ -28,4 +28,7 @@ export const config = {
 
   //social login
   googleClientId: process.env.GOOGLE_CLIENT_ID,
+
+  // redis connection
+  redisUri: process.env.REDIS_URI,
 };

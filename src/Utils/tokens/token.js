@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import { config } from "../../../config/config.service.js";
 import { signatureEnum, RoleEnum } from "../enums/user.enum.js";
-
+import { v4 as uuidv4 } from "uuid";
 export const generateToken = ({
   payload,
   secretKey = config.userAccessTokenSecret,
@@ -39,16 +39,17 @@ export const getNewCredentials = async (user) => {
     signatureLevel:
       user.role !== RoleEnum.Admin ? signatureEnum.User : signatureEnum.Admin,
   });
+  const jwtid = uuidv4();
 
   const accessToken = generateToken({
     payload: { id: user._id },
     secretKey: signature.accessSignature,
-    options: { expiresIn: config.accessTokenExpiration },
+    options: { expiresIn: config.accessTokenExpiration, jwtid },
   });
   const refreshToken = generateToken({
     payload: { id: user._id },
     secretKey: signature.refreshSignature,
-    options: { expiresIn: config.refreshTokenExpiration },
+    options: { expiresIn: config.refreshTokenExpiration, jwtid },
   });
   return { accessToken, refreshToken };
 };

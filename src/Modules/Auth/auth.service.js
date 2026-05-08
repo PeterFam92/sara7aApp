@@ -1,4 +1,4 @@
-import { create, findOne } from "../../DB/database.repo.js";
+import { create, findOne, updateOne } from "../../DB/database.repo.js";
 import UserModel from "../../DB/Models/user.model.js";
 import {
   badRequestException,
@@ -13,9 +13,11 @@ import {
 } from "../../Utils/security/hash.security.js";
 import { encrypt } from "../../Utils/security/encryption.security.js";
 import { getNewCredentials } from "../../Utils/tokens/token.js";
-import { ProviderEnum } from "../../Utils/enums/user.enum.js";
+import { ProviderEnum, LogoutTypeEnum } from "../../Utils/enums/user.enum.js";
 import { OAuth2Client } from "google-auth-library";
 import { config } from "../../../config/config.service.js";
+import TokenModel from "../../DB/Models/token.model.js";
+import { set, revokeTokenKey } from "../../DB/redis.service.js";
 
 //signup
 
@@ -44,6 +46,7 @@ export const signUp = async (req, res) => {
   return successResponse({
     res,
     statusCode: 201,
+    message: "User created successfully",
     data: { user },
   });
 };
@@ -146,5 +149,77 @@ export const googleLogin = async (req, res) => {
     message: "User created successfully and logged in with Google",
     data: { credentials },
     statusCode: 201,
+  });
+};
+
+//logout
+
+export const logout = async (req, res) => {
+  const { flag } = req.body;
+  let status = 200;
+
+  switch (flag) {
+    case LogoutTypeEnum.LogoutFromCurrentDevice:
+      await create({
+        model: TokenModel,
+        data: [
+          {
+            jti: req.decodedToken.jti,
+            userId: req.user._id,
+            expiresIn: new Date(req.decodedToken.exp * 1000),
+          },
+        ],
+      });
+      status = 201;
+      break;
+    case LogoutTypeEnum.LogoutFromAllDevices:
+      await updateOne({
+        model: UserModel,
+        filter: { _id: req.user._id },
+        update: { changeCredentialsTime: Date.now() },
+      });
+      status = 200;
+      break;
+  }
+
+  return successResponse({
+    res,
+    statusCode: status,
+    message: "User logged out successfully",
+  });
+};
+
+//  logout with redis
+export const logoutWithRedis = async (req, res) => {
+  const { flag } = req.body;
+  let status = 200;
+
+  switch (flag) {
+    case LogoutTypeEnum.LogoutFromCurrentDevice:
+      await set({
+        key: revokeTokenKey({
+          userId: req.user._id,
+          jti: req.decodedToken.jti,
+        }),
+        value: req.decodedToken.jti,
+        ttl: req.decodedToken.iat + config.accessTokenExpiration,
+      });
+
+      status = 201;
+      break;
+    case LogoutTypeEnum.LogoutFromAllDevices:
+      await set({
+        key: revokeTokenKey({ userId: req.user._id }),
+        value: req.user._id,
+        ttl: req.decodedToken.iat + config.refreshTokenExpiration,
+      });
+      status = 200;
+      break;
+  }
+
+  return successResponse({
+    res,
+    statusCode: status,
+    message: "User logged out successfully",
   });
 };
